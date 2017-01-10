@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<head>
+<title>Final Project</title>
+<script src="three.min.js"></script>
+<script src="KeyboardState.js"></script>
+
+<script>
+// Muriel Brunet
+// Final Project
+// 12/8/16
+// Up & Down Arrows: rotate the x-axis
+// Left & Right Arrows: rotate the z-axis
+// W & S Keys: move along the y-axis
+// A & D Keys: turn left and right
+
+    var scene, camera, renderer;  // Three.js rendering basics.
+
+    var canvas;  // The canvas on which the image is rendered.
+
+    var dirLight; // Our directional light is global so we can change its position.
+
+    var keyboard = new KeyboardState();
+    
+    var earthAndMoon;
+    var newEarthAndMoon;
+    var moon;
+    var saturnAndMoons;
+    var saturnsMoons;
+    var saturnMoon;
+    var saturnMoon2;
+    var saturnMoon3;
+    var venus;
+    var UFO;
+    var player;
+    var solarSystem;
+    var newSolarSystem;
+    var newSaturnAndMoons;
+
+    // Create the scene. This function is called once, as soon as the page loads.
+    // The renderer has already been created before this function is called.
+    function createWorld() {
+        
+        
+        renderer.setClearColor(0); // Set background color (0, or 0x000000, is black).
+        scene = new THREE.Scene(); // Create a new scene which we can add objects to.
+    
+        // create a camera, sitting on the positive z-axis.  The camera is not part of the scene.
+        camera = new THREE.PerspectiveCamera(45, canvas.width/canvas.height, 0.1, 4000); //fov, aspect, near, far
+        camera.position.z = 700; // pull back the camera
+        camera.rotation.x = -0.3;
+        camera.position.y = 200;
+
+
+
+        ambientLight = new THREE.AmbientLight("red", 0.2);
+        scene.add(ambientLight);
+
+        //sunlight
+        pointLight = new THREE.PointLight("white", 20, 145); // color, intensity, and distance
+        pointLight.position.set( 0, 0, 0 );
+        scene.add(pointLight);
+        scene.add(new THREE.PointLightHelper(pointLight, 7)); // see where the light is
+
+        // to light up the solar system
+        dirLight = new THREE.DirectionalLight("white", 1);
+        dirLight.position.set( 100, 100,  100);
+        scene.add(dirLight);
+
+        earthAndMoon = new THREE.Object3D();
+        moon = new THREE.Object3D();
+        mars = new THREE.Object3D();
+        saturnsMoons = new THREE.Object3D();
+        saturnAndMoons = new THREE.Object3D();
+        saturnMoon = new THREE.Object3D();
+        saturnMoon2 = new THREE.Object3D();
+        saturnMoon3 = new THREE.Object3D();
+        venus = new THREE.Object3D();
+        player = new THREE.Object3D();
+        solarSystem = new THREE.Object3D();
+
+        // add all planets to scene
+        scene.add(earthAndMoon);
+        scene.add(moon);
+        scene.add(mars);
+        scene.add(saturnsMoons);
+        scene.add(saturnAndMoons);
+        scene.add(saturnMoon);
+        scene.add(saturnMoon2);
+        scene.add(saturnMoon3);
+        scene.add(venus);
+        scene.add(solarSystem);
+
+        scene.add(player);
+        player.add(camera);
+
+
+        //SUN --------------------------------------------------
+        var radius = 40,
+            segments = 20,
+            rings = 20;
+        var sunSphereGeometry = new THREE.SphereGeometry(radius, segments, rings);
+		var sunTexture = THREE.ImageUtils.loadTexture("sunTexture.jpeg");
+		var sunSphereMaterial = new THREE.MeshLambertMaterial({map: sunTexture, opacity: 1, transparent: false});
+        sunSphere = new THREE.Mesh(sunSphereGeometry, sunSphereMaterial);
+        scene.add(sunSphere);
+
+        // CONGRATS --------------------------------------------
+        var radius = 5,
+            segments = 20,
+            rings = 20;
+        var congratsSphereGeometry = new THREE.SphereGeometry(radius, segments, rings);
+        var congratsTexture = THREE.ImageUtils.loadTexture("hello v1.jpeg");
+        var congratsSphereMaterial = new THREE.MeshLambertMaterial({map: congratsTexture});
+        congratsSphere = new THREE.Mesh(congratsSphereGeometry, congratsSphereMaterial);
+        scene.add(congratsSphere);
+
+        // MARS --------------------------------------------------
+        var results = planet(10, 20, 20);
+        var marsSphere = new THREE.Mesh(results[0], results[1]);;
+        marsSphere.position.x = 80;
+        mars.add(marsSphere);
+        mars.rotation.x = 0.6;
+        solarSystem.add(mars);
+
+
+        // MOON  --------------------------------------------------
+        var results = planet(5, 20, 20);
+        var moonSphere = new THREE.Mesh(results[0], results[1]);;
+        moonSphere.position.x = 30;
+        moon.position.x = 120;
+        moon.position.z = 90;
+        moon.add(moonSphere);
+        solarSystem.add(moon);
+
+        newMoon = moon.clone();
+        newMoon.position.set(0, 100, 500);
+        scene.add(newMoon);
+
+        // EARTH  --------------------------------------------------
+        var results = planet(15, 20, 20);
+        var earthSphere = new THREE.Mesh(results[0], results[1]);;
+        earthSphere.position.x = 120;
+        earthSphere.position.z = 90;
+        earthAndMoon.add(earthSphere);
+        earthAndMoon.add(moon);
+        solarSystem.add(earthAndMoon);
+
+        // NEW SOLAR SYSTEM ----------------------------------------
+        newSolarSystem = solarSystem.clone();
+        newSolarSystem.position.set(-200, 100, 100);
+        scene.add(newSolarSystem);
+
+        // SATURN'S MOONS --------------------------------------------------
+        var results = planet(5, 20, 20);
+        var saturnMoonSphere =  new THREE.Mesh(results[0], results[1]);
+        var saturnMoonSphere2 = new THREE.Mesh(results[0], results[1]);
+        var saturnMoonSphere3 = new THREE.Mesh(results[0], results[1]);
+
+        saturnMoonSphere.position.x = -30;
+        saturnMoonSphere2.position.x = 40;
+        saturnMoonSphere3.position.x = -40;
+
+        saturnMoon.add(saturnMoonSphere); // to control moon's orbits individually
+        saturnMoon2.add(saturnMoonSphere2);
+        saturnMoon3.add(saturnMoonSphere3);
+
+        saturnMoon3.rotation.x = saturnMoon3.rotation.y = 0.7;
+
+        saturnsMoons.add(saturnMoon);
+        saturnsMoons.add(saturnMoon2);
+        saturnsMoons.add(saturnMoon3);
+        saturnsMoons.position.x = 200; // move to be next to saturn
+        
+        // SATURN --------------------------------------------------
+        var results = planet(20, 20, 20);
+        var saturnSphere = new THREE.Mesh(results[0], results[1]);
+        saturnSphere.position.x = 200;
+        saturnAndMoons.add(saturnSphere);
+        saturnAndMoons.add(saturnsMoons);
+
+
+        // NEW SATURN AND MOONS -----------------------------------
+        newSaturnAndMoons = saturnAndMoons.clone();
+        newSaturnAndMoons.position.set(0, -100, -300);
+        scene.add(newSaturnAndMoons);
+
+        saturnAndMoons.rotation.x = 0.6;
+
+        // VENUS --------------------------------------------------
+        var results = planet(25, 20, 20);
+        var venusSphere = new THREE.Mesh(results[0], results[1]);
+        venusSphere.position.z = -275;
+        venus.add(venusSphere);
+
+
+
+        // STARS --------------------------------------------------
+        for(var i=1; i<=200; i++){
+            var x = getRandomIntInclusive(-300, 300);
+            var y = getRandomIntInclusive(-200, 200);
+            var z = getRandomIntInclusive(-300, 0);
+            scene.add(cube(x, y, z));   
+        }
+
+        // UFO ----------------------------------------------------
+
+        var texture = THREE.ImageUtils.loadTexture("stainless steel texture.jpg");
+
+        var loader = new THREE.JSONLoader();
+        loader.load('model.json', function(geometry, materials) {
+            var material = new THREE.MultiMaterial( materials );
+            UFO = new THREE.Mesh(geometry, material);
+            UFO.position.z = 600;
+            UFO.position.y = 150;
+            UFO.scale = 100; // why is this thing so small?!
+            scene.add(UFO);
+	        player.add(UFO);
+        });        
+
+
+
+
+    }
+
+    function planet(radius, segments, rings){
+        var planetSphereGeometry = new THREE.SphereGeometry(radius, segments, rings);
+        var planetSphereMaterial = new THREE.MeshLambertMaterial({ color: getRandomColor() });
+        
+        var results = [planetSphereGeometry, planetSphereMaterial];
+        return results;
+    }
+
+
+    function cube(cx, cy, cz){
+        var squareGeom = new THREE.Geometry();        
+        var cubeGeom = new THREE.BoxGeometry(1,1,1);
+        var cubeMaterial = new THREE.MeshFaceMaterial( [
+            new THREE.MeshPhongMaterial( { color: "white" } ),     // for the +x face
+            new THREE.MeshPhongMaterial( { color: "white" } ),    // for the -x face
+            new THREE.MeshPhongMaterial( { color: "white" } ),   // for the +y face
+            new THREE.MeshPhongMaterial( { color: "white" } ), // for the -y face
+            new THREE.MeshPhongMaterial( { color: "white" } ),    // for the +z face
+            new THREE.MeshPhongMaterial( { color: "white" } )   // for the -z face
+        ] );
+        var cube = new THREE.Mesh( cubeGeom, cubeMaterial );
+        cube.position.x = cx;
+        cube.position.y = cy;
+        cube.position.z = cz;
+        return(cube);
+    }
+
+    // Returns a random integer between min (included) and max (included)
+    // Using Math.round() will give you a non-uniform distribution!
+    function getRandomIntInclusive(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++ ) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    function update() {
+        keyboard.update();
+
+        if ( keyboard.pressed("down") ) {
+            player.position.z += 3;
+        }
+        if ( keyboard.pressed("up") ) {
+            player.position.z -= 3;
+        }
+        if ( keyboard.pressed("right") ) {
+            player.position.x += 3;
+        }
+        if ( keyboard.pressed("left") ) {
+            player.position.x -= 3;
+        }
+        if ( keyboard.pressed("W") ) {
+            player.position.y += 3;
+        }
+        if ( keyboard.pressed("S") ) {
+            player.position.y -= 3;
+        }
+        if ( keyboard.pressed("A") ) {
+            player.rotation.y -= 0.01;
+        }
+        if ( keyboard.pressed("D") ) {
+            player.rotation.y += 0.01;
+        }
+
+
+
+    }
+
+    // Render the scene. This is called for each frame of the animation.
+    function render() {
+        requestAnimationFrame( render );
+
+        sunSphere.rotation.y += 0.03;
+        congratsSphere.rotation.y -= 0.01;
+        earthAndMoon.rotation.y += 0.01;
+        moon.rotation.y += 0.06;
+        newMoon.rotation.y += 0.06;
+
+        mars.rotation.y += 0.04;
+
+        saturnMoon.rotation.z += 0.05;
+        saturnMoon2.rotation.y += 0.05;
+        saturnMoon3.rotation.y += 0.05;
+        
+        saturnAndMoons.rotation.y  += 0.03;
+
+        saturnsMoons.rotation.z += 0.03;
+        venus.rotation.x += 0.02;
+
+        newSolarSystem.rotation.y += 0.06;
+        newSaturnAndMoons.rotation.z -= 0.05;
+
+        renderer.render(scene, camera);
+        update();
+    }
+
+    //----------------------------------------------------------------------------------
+
+    // The init() function is called by the onload event when the document has loaded.
+    function init() {
+        try {
+            canvas = document.getElementById("glcanvas");
+            renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true} );
+        }
+        catch (e) {
+            document.getElementById("canvas-holder").innerHTML = "<h3><b>WebGL is not available.</b><h3>";
+            return;
+        }
+    
+        // create world and render scene
+        createWorld();
+        render();
+    }
+
+</script>
+
+</head>
+<body onload="init()" style="background-color: black" >
+<div id="canvas-holder">
+    <canvas id="glcanvas" width="1000" height="600" style="float:left; margin-right: 10px; "></canvas>
+
+    <div style = "color: white">
+        <p style="text-transform: uppercase;">Find a hidden message inside one of the planets!</p>
+        <br>
+        <br>
+        <p><u>Control Keys</u></p>
+        <p><i>Up & Down Arrows:</i> move along the z-axis</p>
+        <p><i>Left & Right Arrows:</i> move along the x-axis</p>
+        <p><i>W & S:</i> move along y-axis</p>
+        <p><i>A & D:</i> turn left and right</p>
+<!--         <img src="UFO Fleet.png" style="width: 500px">
+ -->        <p><i>Muriel Brunet
+        <br>Computer Graphics
+        <br>Fall 2016</i></p>
+
+    </div>
+
+</div>
+</body>
+</html>
